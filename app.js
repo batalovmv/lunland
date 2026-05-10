@@ -298,45 +298,43 @@ async function fetchPage(href) {
   return html;
 }
 
+function setActiveNav(url) {
+  const pathLeaf = url.pathname.split('/').pop() || 'index.html';
+  const nav = document.querySelector('.main-nav');
+  if (!nav) return;
+  nav.querySelectorAll('a').forEach((a) => {
+    const href = a.getAttribute('href') || '';
+    const leaf = href.split('/').pop();
+    a.classList.toggle('is-active', leaf === pathLeaf || (pathLeaf === '' && leaf === 'index.html'));
+  });
+}
+
 async function swapTo(url, { push } = { push: true }) {
   let html;
   try {
     html = await fetchPage(url.href);
   } catch (e) {
-    // network fail → hard navigate
     location.href = url.href;
     return;
   }
   const doc = new DOMParser().parseFromString(html, 'text/html');
 
+  // Pre-transition: switch nav active immediately so old/new view
+  // snapshots both render the same active button (no crossfade ghost).
+  setActiveNav(url);
+
   const doSwap = () => {
-    // <title>
     document.title = doc.title;
 
-    // body classes & data-page
     const newPage = doc.body.dataset.page || '';
-    if (newPage) {
-      document.body.dataset.page = newPage;
-    } else {
-      delete document.body.dataset.page;
-    }
+    if (newPage) document.body.dataset.page = newPage;
+    else delete document.body.dataset.page;
     document.body.classList.toggle('page-home', doc.body.classList.contains('page-home'));
     document.body.classList.toggle('page-inner', doc.body.classList.contains('page-inner'));
 
-    // Swap <main>
     const newMain = doc.querySelector('main');
     const oldMain = document.querySelector('main');
-    if (newMain && oldMain) {
-      oldMain.replaceWith(newMain);
-    }
-
-    // Update nav active link
-    const pathLeaf = url.pathname.split('/').pop() || 'index.html';
-    document.querySelectorAll('.main-nav a').forEach((a) => {
-      const href = a.getAttribute('href') || '';
-      const leaf = href.split('/').pop();
-      a.classList.toggle('is-active', leaf === pathLeaf || (pathLeaf === '' && leaf === 'index.html'));
-    });
+    if (newMain && oldMain) oldMain.replaceWith(newMain);
 
     if (push) history.pushState({ url: url.href }, '', url.href);
     window.scrollTo(0, 0);
@@ -370,11 +368,15 @@ function setupRouter() {
       return;
     }
     e.preventDefault();
+    // Instant visual feedback: switch active pill *now*, before fetch
+    setActiveNav(url);
     swapTo(url, { push: true });
   });
 
   window.addEventListener('popstate', () => {
-    swapTo(new URL(location.href), { push: false });
+    const url = new URL(location.href);
+    setActiveNav(url);
+    swapTo(url, { push: false });
   });
 }
 
