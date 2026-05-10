@@ -1,10 +1,16 @@
-// LUNLAND · cozy interactions
+// LUNLAND · cozy interactions + SPA router
 
 const SERVER_IP = '89.248.193.202:32251';
+
+/* ===================================================================
+   GLOBAL (mounted once) — petals, header, mobile menu, delegated
+   handlers for copy-IP, lightbox, scroll header
+   =================================================================== */
 
 /* ---------- petals (cherry blossom rain) ---------- */
 function spawnPetals(host, count = 26) {
   if (!host) return;
+  host.innerHTML = '';
   const variants = 4;
   const frag = document.createDocumentFragment();
   for (let i = 0; i < count; i++) {
@@ -24,9 +30,10 @@ function spawnPetals(host, count = 26) {
   host.appendChild(frag);
 }
 
-/* ---------- sparkle stars (floating in hero) ---------- */
-function spawnSparkles(host, count = 8) {
+/* ---------- sparkles inside hero ---------- */
+function spawnSparkles(host, count = 10) {
   if (!host) return;
+  host.querySelectorAll(':scope > .sparkle').forEach((s) => s.remove());
   const frag = document.createDocumentFragment();
   for (let i = 0; i < count; i++) {
     const s = document.createElement('span');
@@ -42,7 +49,7 @@ function spawnSparkles(host, count = 8) {
   host.appendChild(frag);
 }
 
-/* ---------- heart burst (on copy) ---------- */
+/* ---------- heart burst on copy ---------- */
 function burstHearts(x, y) {
   if (x == null || y == null) return;
   const COUNT = 9;
@@ -91,9 +98,11 @@ function showToast() {
   toastTimer = setTimeout(() => t.classList.remove('is-visible'), 2400);
 }
 
-/* ---------- magnetic button ---------- */
+/* ---------- magnetic & tilt ---------- */
 function bindMagnetic(el) {
   if (matchMedia('(hover: none)').matches) return;
+  if (el.dataset.magneticBound) return;
+  el.dataset.magneticBound = '1';
   const STRENGTH = 14;
   el.addEventListener('mousemove', (e) => {
     const r = el.getBoundingClientRect();
@@ -104,39 +113,29 @@ function bindMagnetic(el) {
   el.addEventListener('mouseleave', () => { el.style.transform = ''; });
 }
 
-/* ---------- tilt-on-hover for tier cards ---------- */
-function setupTilt(selector = '.tier-card') {
+function bindTilt(card) {
   if (matchMedia('(hover: none)').matches) return;
-  document.querySelectorAll(selector).forEach((card) => {
-    card.addEventListener('mousemove', (e) => {
-      const r = card.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width - 0.5;
-      const py = (e.clientY - r.top) / r.height - 0.5;
-      card.style.setProperty('--tilt-x', `${(py * -5).toFixed(2)}deg`);
-      card.style.setProperty('--tilt-y', `${(px * 5).toFixed(2)}deg`);
-      card.style.setProperty('--shimmer-x', `${((e.clientX - r.left) / r.width * 100).toFixed(0)}%`);
-      card.style.setProperty('--shimmer-y', `${((e.clientY - r.top) / r.height * 100).toFixed(0)}%`);
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.removeProperty('--tilt-x');
-      card.style.removeProperty('--tilt-y');
-    });
+  if (card.dataset.tiltBound) return;
+  card.dataset.tiltBound = '1';
+  card.addEventListener('mousemove', (e) => {
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - 0.5;
+    const py = (e.clientY - r.top) / r.height - 0.5;
+    card.style.setProperty('--tilt-x', `${(py * -5).toFixed(2)}deg`);
+    card.style.setProperty('--tilt-y', `${(px * 5).toFixed(2)}deg`);
+    card.style.setProperty('--shimmer-x', `${((e.clientX - r.left) / r.width * 100).toFixed(0)}%`);
+    card.style.setProperty('--shimmer-y', `${((e.clientY - r.top) / r.height * 100).toFixed(0)}%`);
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.removeProperty('--tilt-x');
+    card.style.removeProperty('--tilt-y');
   });
 }
 
-/* ---------- scroll-reveal header (home only) ---------- */
-function setupScrollHeader() {
-  if (!document.body.classList.contains('page-home')) return;
-  const apply = () => {
-    document.body.classList.toggle('is-scrolled', window.scrollY > 220);
-  };
-  apply();
-  window.addEventListener('scroll', apply, { passive: true });
-}
-
-/* ---------- scroll reveal (sections fade in) ---------- */
+/* ---------- scroll-reveal ---------- */
+let revealObserver = null;
 function setupReveal() {
-  const items = document.querySelectorAll('.reveal');
+  const items = document.querySelectorAll('.reveal:not(.is-visible)');
   items.forEach((el) => {
     const delay = el.dataset.delay;
     if (delay) el.style.setProperty('--delay', delay);
@@ -145,24 +144,39 @@ function setupReveal() {
     items.forEach((el) => el.classList.add('is-visible'));
     return;
   }
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        io.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-  items.forEach((el) => io.observe(el));
+  if (!revealObserver) {
+    revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  }
+  items.forEach((el) => revealObserver.observe(el));
 }
 
-/* ---------- nav pill (hover-only sliding indicator) ---------- */
+/* ---------- mobile menu ---------- */
+function setupMobileMenu() {
+  const btn = document.querySelector('[data-menu-toggle]');
+  const nav = document.querySelector('[data-nav]');
+  if (!btn || !nav || btn.dataset.menuBound) return;
+  btn.dataset.menuBound = '1';
+  btn.addEventListener('click', () => {
+    const open = nav.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', String(open));
+  });
+}
+
+/* ---------- nav pill ---------- */
+let navPillActive = null;
 function setupNavPill() {
   const nav = document.querySelector('.main-nav');
   if (!nav) return;
   const links = nav.querySelectorAll('a');
   if (!links.length) return;
-  if (matchMedia('(hover: none)').matches) return; // pointer-coarse: skip
+  if (matchMedia('(hover: none)').matches) return;
   let pill = nav.querySelector('.nav-pill');
   if (!pill) {
     pill = document.createElement('span');
@@ -176,164 +190,237 @@ function setupNavPill() {
     nav.style.setProperty('--pill-x', `${(r.left - nr.left).toFixed(2)}px`);
     nav.style.setProperty('--pill-w', `${r.width.toFixed(2)}px`);
   };
-  const active = nav.querySelector('a.is-active') || links[0];
-  // park the pill under the active link silently (still hidden by CSS opacity:0)
-  requestAnimationFrame(() => moveTo(active));
+  navPillActive = nav.querySelector('a.is-active') || links[0];
+  requestAnimationFrame(() => moveTo(navPillActive));
+
+  if (nav.dataset.pillBound) return;
+  nav.dataset.pillBound = '1';
 
   links.forEach((a) => {
     a.addEventListener('mouseenter', () => {
       nav.classList.add('is-hovering');
-      links.forEach((x) => x.classList.remove('pill-hover'));
+      nav.querySelectorAll('a.pill-hover').forEach((x) => x.classList.remove('pill-hover'));
       a.classList.add('pill-hover');
       moveTo(a);
     });
   });
   nav.addEventListener('mouseleave', () => {
     nav.classList.remove('is-hovering');
-    links.forEach((x) => x.classList.remove('pill-hover'));
-    moveTo(active);
+    nav.querySelectorAll('a.pill-hover').forEach((x) => x.classList.remove('pill-hover'));
+    moveTo(navPillActive);
   });
-  window.addEventListener('resize', () => moveTo(nav.querySelector('.pill-hover') || active), { passive: true });
+  window.addEventListener('resize', () => {
+    moveTo(nav.querySelector('.pill-hover') || navPillActive);
+  }, { passive: true });
 }
 
-/* ---------- page transitions (fallback for browsers w/o View Transitions API) ---------- */
-function setupPageTransitions() {
-  document.body.classList.add('page-loaded');
-  if ('startViewTransition' in document) return; // native CSS-driven transitions handle it
-  const internal = (href) => {
-    if (!href) return false;
-    if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return false;
-    try {
-      const u = new URL(href, location.href);
-      if (u.origin !== location.origin) return false;
-      return /\.html?($|\?|#)/i.test(u.pathname) || u.pathname === '/' || u.pathname.endsWith('/');
-    } catch { return false; }
+/* ---------- fake live online ---------- */
+let onlineInterval = null;
+function setupFakeOnline() {
+  if (onlineInterval) clearInterval(onlineInterval);
+  const tick = () => {
+    const els = document.querySelectorAll('[data-online]');
+    if (!els.length) return;
+    const n = 18 + Math.floor(Math.random() * 28);
+    els.forEach((el) => (el.textContent = String(n)));
   };
+  tick();
+  onlineInterval = setInterval(tick, 4500);
+}
+
+/* ---------- lightbox (kak-zajti) ---------- */
+const STEP_DATA = {
+  1: { title: 'Выбираем нужную версию в лаунчере', desc: 'Открой Minecraft Launcher и в списке версий выбери 1.21.11 (Java Edition). Если её нет — нажми «+» / «Создать» и установи новую.' },
+  2: { title: 'NeoForge / Fabric — по желанию', desc: 'Для голосового чата установи NeoForge (или Fabric) под 1.21.11 и Voice-chat mod. Без них сервер тоже работает — просто без голоса.' },
+  3: { title: 'Запускаем игру', desc: 'Жми «Играть» в лаунчере и подожди, пока загрузятся ресурсы. На слабых ПК — до минуты.' },
+  4: { title: 'Выбираем «Сетевая игра»', desc: 'В главном меню Minecraft — вторая кнопка сверху, под «Одиночная игра».' },
+  5: { title: 'Нажимаем кнопку «Добавить»', desc: 'В нижней части экрана со списком серверов нажми «Добавить» (или «Добавить сервер»).' },
+  6: { title: 'Вписываем имя и IP сервера', desc: 'Имя — любое, например «LUNLAND ♡». В поле «Адрес» вставь IP: 89.248.193.202:32251 и нажми «Готово».' },
+  7: { title: 'Ура! У тебя всё получилось!', desc: 'Сервер появится в списке — клик по нему, и ты на спавне в вишнёвой роще. Не забудь купить проходку и указать ник.' }
+};
+
+function openLightbox(step) {
+  const lb = document.querySelector('[data-lightbox]');
+  if (!lb) return;
+  const data = STEP_DATA[step];
+  if (!data) return;
+  lb.querySelector('[data-lightbox-step]').textContent = String(step).padStart(2, '0');
+  lb.querySelector('[data-lightbox-title]').textContent = data.title;
+  lb.querySelector('[data-lightbox-desc]').textContent = data.desc;
+  const imgEl = lb.querySelector('[data-lightbox-img]');
+  imgEl.innerHTML = '';
+  const tmpl = document.getElementById(`step-svg-${step}`);
+  if (tmpl) imgEl.appendChild(tmpl.content.cloneNode(true));
+  lb.classList.add('is-open');
+  lb.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  const lb = document.querySelector('[data-lightbox]');
+  if (!lb) return;
+  lb.classList.remove('is-open');
+  lb.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+/* ===================================================================
+   PER-PAGE INIT — runs once on initial load and on every SPA swap
+   =================================================================== */
+function initPage() {
+  const hero = document.querySelector('.hero');
+  if (hero) spawnSparkles(hero, 10);
+  document.querySelectorAll('.magnetic').forEach(bindMagnetic);
+  document.querySelectorAll('.tier-card, .feature-card').forEach(bindTilt);
+  setupReveal();
+  setupFakeOnline();
+  setupNavPill();
+}
+
+/* ===================================================================
+   ROUTER — SPA navigation with View Transitions API
+   =================================================================== */
+const pageCache = new Map();
+
+function isInternalNav(href) {
+  if (!href) return false;
+  if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+  try {
+    const u = new URL(href, location.href);
+    if (u.origin !== location.origin) return false;
+    return /\.html?($|\?|#)/i.test(u.pathname) || u.pathname === '/' || u.pathname.endsWith('/');
+  } catch { return false; }
+}
+
+async function fetchPage(href) {
+  if (pageCache.has(href)) return pageCache.get(href);
+  const html = await fetch(href, { credentials: 'same-origin' }).then((r) => r.text());
+  pageCache.set(href, html);
+  return html;
+}
+
+async function swapTo(url, { push } = { push: true }) {
+  let html;
+  try {
+    html = await fetchPage(url.href);
+  } catch (e) {
+    // network fail → hard navigate
+    location.href = url.href;
+    return;
+  }
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  const doSwap = () => {
+    // <title>
+    document.title = doc.title;
+
+    // body classes & data-page
+    const newPage = doc.body.dataset.page || '';
+    if (newPage) {
+      document.body.dataset.page = newPage;
+    } else {
+      delete document.body.dataset.page;
+    }
+    document.body.classList.toggle('page-home', doc.body.classList.contains('page-home'));
+    document.body.classList.toggle('page-inner', doc.body.classList.contains('page-inner'));
+
+    // Swap <main>
+    const newMain = doc.querySelector('main');
+    const oldMain = document.querySelector('main');
+    if (newMain && oldMain) {
+      oldMain.replaceWith(newMain);
+    }
+
+    // Update nav active link
+    const pathLeaf = url.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.main-nav a').forEach((a) => {
+      const href = a.getAttribute('href') || '';
+      const leaf = href.split('/').pop();
+      a.classList.toggle('is-active', leaf === pathLeaf || (pathLeaf === '' && leaf === 'index.html'));
+    });
+
+    if (push) history.pushState({ url: url.href }, '', url.href);
+    window.scrollTo(0, 0);
+  };
+
+  if (document.startViewTransition) {
+    await document.startViewTransition(() => {
+      doSwap();
+      initPage();
+    }).finished.catch(() => {});
+  } else {
+    document.body.classList.add('page-leaving');
+    await new Promise((r) => setTimeout(r, 240));
+    doSwap();
+    initPage();
+    document.body.classList.remove('page-leaving');
+  }
+}
+
+function setupRouter() {
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a');
     if (!a) return;
     if (a.target === '_blank' || a.hasAttribute('download')) return;
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     const href = a.getAttribute('href');
-    if (!internal(href)) return;
-    e.preventDefault();
-    document.body.classList.add('page-leaving');
-    setTimeout(() => { window.location.href = href; }, 280);
-  });
-}
-
-/* ---------- mobile menu ---------- */
-function setupMobileMenu() {
-  const btn = document.querySelector('[data-menu-toggle]');
-  const nav = document.querySelector('[data-nav]');
-  if (!btn || !nav) return;
-  btn.addEventListener('click', () => {
-    const open = nav.classList.toggle('is-open');
-    btn.setAttribute('aria-expanded', String(open));
-  });
-  nav.querySelectorAll('a').forEach((a) =>
-    a.addEventListener('click', () => {
-      nav.classList.remove('is-open');
-      btn.setAttribute('aria-expanded', 'false');
-    })
-  );
-}
-
-/* ---------- step lightbox (kak-zajti) ---------- */
-const STEP_DATA = {
-  1: {
-    title: 'Выбери версию 1.21.11',
-    desc: 'Открой Minecraft Launcher и в списке версий выбери 1.21.11 (Java Edition). Если её нет — нажми «+» / «Создать» и установи новую.'
-  },
-  2: {
-    title: 'NeoForge или Fabric — по желанию',
-    desc: 'Если хочешь общаться голосом — установи NeoForge (или Fabric) под 1.21.11 и добавь Voice-chat mod. Без них сервер тоже работает, просто без голоса.'
-  },
-  3: {
-    title: 'Запусти Minecraft',
-    desc: 'Жми «Играть» (или PLAY) в лаунчере и подожди, пока загрузятся ресурсы. На слабых ПК — до минуты.'
-  },
-  4: {
-    title: 'Открой «Сетевая игра»',
-    desc: 'В главном меню Minecraft выбери «Сетевая игра» — это вторая кнопка сверху, под «Одиночная игра».'
-  },
-  5: {
-    title: 'Нажми «Добавить сервер»',
-    desc: 'В нижней части экрана со списком серверов нажми кнопку «Добавить» (или «Добавить сервер»).'
-  },
-  6: {
-    title: 'Введи имя и IP сервера',
-    desc: 'Имя — любое, например «LUNLAND ♡». В поле «Адрес» вставь IP: 89.248.193.202:32251 и нажми «Готово».'
-  },
-  7: {
-    title: 'Ура! Ты в LUNLAND ♡',
-    desc: 'Сервер появится в списке — клик по нему, и ты на спавне в вишнёвой роще. Не забудь купить проходку и указать ник в Discord/админу.'
-  }
-};
-
-function setupLightbox() {
-  const lb = document.querySelector('[data-lightbox]');
-  if (!lb) return;
-  const stepEl = lb.querySelector('[data-lightbox-step]');
-  const titleEl = lb.querySelector('[data-lightbox-title]');
-  const descEl = lb.querySelector('[data-lightbox-desc]');
-  const imgEl = lb.querySelector('[data-lightbox-img]');
-
-  const open = (step) => {
-    const data = STEP_DATA[step];
-    if (!data) return;
-    stepEl.textContent = String(step).padStart(2, '0');
-    titleEl.textContent = data.title;
-    descEl.textContent = data.desc;
-    imgEl.innerHTML = '';
-    const tmpl = document.getElementById(`step-svg-${step}`);
-    if (tmpl) {
-      const node = tmpl.content.cloneNode(true);
-      imgEl.appendChild(node);
+    if (!isInternalNav(href)) return;
+    const url = new URL(href, location.href);
+    if (url.pathname === location.pathname && !url.hash) {
+      e.preventDefault();
+      return;
     }
-    lb.classList.add('is-open');
-    lb.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
-  };
-  const close = () => {
-    lb.classList.remove('is-open');
-    lb.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-  };
+    e.preventDefault();
+    swapTo(url, { push: true });
+  });
 
-  document.querySelectorAll('[data-step]').forEach((btn) =>
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      open(Number(btn.dataset.step));
-    })
-  );
-  lb.querySelector('[data-lightbox-close]').addEventListener('click', close);
-  lb.addEventListener('click', (e) => { if (e.target === lb) close(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && lb.classList.contains('is-open')) close(); });
+  window.addEventListener('popstate', () => {
+    swapTo(new URL(location.href), { push: false });
+  });
 }
 
-/* ---------- init ---------- */
-document.addEventListener('DOMContentLoaded', () => {
-  spawnPetals(document.getElementById('petals'), 26);
-  spawnSparkles(document.querySelector('.hero'), 10);
-
-  document.querySelectorAll('[data-copy-ip]').forEach((el) =>
-    el.addEventListener('click', (e) => {
+/* ===================================================================
+   DELEGATED CLICK HANDLERS (work after SPA swap automatically)
+   =================================================================== */
+function setupGlobalDelegation() {
+  document.addEventListener('click', (e) => {
+    // copy IP
+    const copyBtn = e.target.closest('[data-copy-ip]');
+    if (copyBtn) {
       e.preventDefault();
-      const x = e.clientX || (el.getBoundingClientRect().left + el.offsetWidth / 2);
-      const y = e.clientY || (el.getBoundingClientRect().top + el.offsetHeight / 2);
+      const x = e.clientX || (copyBtn.getBoundingClientRect().left + copyBtn.offsetWidth / 2);
+      const y = e.clientY || (copyBtn.getBoundingClientRect().top + copyBtn.offsetHeight / 2);
       copyIP();
       burstHearts(x, y);
-    })
-  );
+      return;
+    }
+    // lightbox open
+    const stepBtn = e.target.closest('[data-step]');
+    if (stepBtn) {
+      e.preventDefault();
+      openLightbox(Number(stepBtn.dataset.step));
+      return;
+    }
+    // lightbox close
+    const closeBtn = e.target.closest('[data-lightbox-close]');
+    if (closeBtn) { closeLightbox(); return; }
+    // backdrop click
+    if (e.target.matches('.lightbox.is-open')) closeLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const lb = document.querySelector('.lightbox.is-open');
+      if (lb) closeLightbox();
+    }
+  });
+}
 
-  document.querySelectorAll('.magnetic').forEach(bindMagnetic);
-  setupTilt('.tier-card');
-  setupTilt('.feature-card');
-  setupReveal();
+/* ===================================================================
+   BOOT
+   =================================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  spawnPetals(document.getElementById('petals'), 26);
+  setupGlobalDelegation();
   setupMobileMenu();
-  setupScrollHeader();
-  setupLightbox();
-  setupNavPill();
-  setupPageTransitions();
+  setupRouter();
+  initPage();
 });
