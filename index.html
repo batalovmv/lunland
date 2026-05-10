@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#16101a" />
+  <title>LUNLAND — твой уютный уголок в мире блоков</title>
+  <meta name="description" content="LUNLAND MINECRAFT SERVER. Ламповое выживание, IP 89.248.193.202:32251, стоимость проходки 99 руб/мес." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;700;900&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="./assets/logo.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body class="page-home">
+  <div class="bg-decor" aria-hidden="true">
+    <span class="glow glow-1"></span>
+    <span class="glow glow-2"></span>
+    <span class="glow glow-3"></span>
+  </div>
+  <div class="petals" id="petals" aria-hidden="true"></div>
+
+  <header class="site-header" data-header>
+    <a class="brand" href="./index.html" aria-label="LUNLAND">
+      <span class="brand-mark"></span>
+      <span class="brand-word">LUNLAND<small>minecraft server</small></span>
+    </a>
+
+    <nav class="main-nav" data-nav>
+      <a href="./index.html" class="is-active">Главная</a>
+      <a href="./rules.html">Правила</a>
+      <a href="./privileges.html">Привилегии</a>
+      <a href="./kak-zajti.html">Как играть?</a>
+    </nav>
+
+    <button class="header-ip" type="button" data-copy-ip aria-label="Скопировать IP">
+      <span class="dot"></span>
+      <span class="ip-text">89.248.193.202:32251</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    </button>
+
+    <button class="menu-toggle" type="button" data-menu-toggle aria-label="Меню" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true">
+        <img src="./assets/hero-cherry.png" alt="" />
+        <div class="hero-vignette"></div>
+      </div>
+
+      <div class="hero-content">
+        <h1 class="hero-title reveal">
+          <img src="./assets/logo.png" alt="LUNLAND MINECRAFT SERVER" class="logo-art" />
+          <span class="sr-only">LUNLAND MINECRAFT SERVER</span>
+        </h1>
+
+        <p class="hero-tagline reveal" data-delay="120">
+          <span class="heart">♡</span>Твой уютный уголок в мире блоков<span class="heart">♡</span>
+        </p>
+
+        <p class="hero-claim reveal" data-delay="200">
+          Ты попал в мир, где каждый блок пропитан уютом,<br />
+          а приключения ждут за каждым деревом
+        </p>
+
+        <p class="hero-lead reveal" data-delay="280">
+          Это не просто сервер, это дом для тех, кто ценит ламповое выживание,
+          честную игру и классное комьюнити. В этом гайде мы собрали всё самое важное:
+          от правил нашего мира до полезных советов, которые помогут тебе освоиться.
+        </p>
+
+        <div class="hero-actions reveal" data-delay="360">
+          <a class="btn btn-primary" href="./rules.html">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-12V5l-8-3-8 3v5c0 8 8 12 8 12z"/></svg>
+            <span>Ознакомиться с правилами</span>
+          </a>
+        </div>
+      </div>
+
+    </section>
+
+    <section class="strip-section" id="strip">
+      <div class="server-strip reveal">
+        <article class="online-cell">
+          <span class="strip-label"><span class="status-dot"></span>Сейчас онлайн</span>
+          <strong><span data-online class="pixel">—</span><em> / 80</em></strong>
+        </article>
+        <article>
+          <span class="strip-label">Версия</span>
+          <strong class="pixel">1.21.11</strong>
+        </article>
+        <article>
+          <span class="strip-label">Стоимость проходки</span>
+          <strong><span class="pixel">99 руб</span><em> / мес.</em></strong>
+        </article>
+        <article>
+          <span class="strip-label">Voice-chat</span>
+          <strong>поддерживается</strong>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer rich-footer">
+    <div class="footer-divider" aria-hidden="true">
+      <span class="petal-dot"></span>
+      <span class="petal-dot"></span>
+      <span class="petal-dot middle">♡</span>
+      <span class="petal-dot"></span>
+      <span class="petal-dot"></span>
+    </div>
+    <div class="footer-grid-cozy">
+      <div class="footer-col-brand">
+        <img src="./assets/logo.png" alt="LUNLAND" class="footer-logo" />
+        <p class="footer-tagline">Уютный Minecraft-сервер, сделанный с любовью. Не аффилирован с Mojang AB.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Навигация</h4>
+        <ul>
+          <li><a href="./index.html">Главная</a></li>
+          <li><a href="./rules.html">Правила</a></li>
+          <li><a href="./privileges.html">Привилегии</a></li>
+          <li><a href="./kak-zajti.html">Как играть?</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Подключение</h4>
+        <ul>
+          <li><span>Версия</span> <code class="pixel">1.21.11</code></li>
+          <li><span>Платформа</span> Java Edition</li>
+          <li><span>Voice</span> поддерживается</li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-col-credits">
+        <h4>Создательница</h4>
+        <div class="creator-card">
+          <img src="./assets/admin-avatar.png" alt="" />
+          <div>
+            <strong>админ LUNLAND</strong>
+            <em>сервер сделан с ♡</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom-cozy">
+      <span>© <span class="pixel">2026</span> г. Твич, ул. Уллуновская 133752</span>
+      <span class="footer-tag">сделано с <span class="heart">♡</span> в&nbsp;вишнёвой&nbsp;роще</span>
+    </div>
+  </footer>
+
+  <div class="toast" role="status" aria-live="polite" data-toast>
+    <span class="toast-ico">♡</span>
+    <span class="toast-text">IP скопирован — приятной игры!</span>
+  </div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
