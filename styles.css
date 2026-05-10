@@ -1601,9 +1601,27 @@ body[data-page="kak-zajti"]  .page-banner-bg img { filter: saturate(1.1) brightn
 .inline-copy code { color: var(--pink); font-size: 16px; padding: 0; background: none; }
 
 /* ===========================================================
-   NAV-PILL — pink "drop" slides between nav buttons
+   NAV-PILL — static active highlight + sliding pill on hover
    =========================================================== */
 .main-nav { position: relative; z-index: 1; }
+.main-nav a {
+  position: relative;
+  z-index: 1;
+  transition: color 200ms var(--ease), background 200ms var(--ease);
+}
+
+/* Static state: active link has solid pink background (visible always,
+   no JS required → no flash on page load / view-transition). */
+.main-nav a.is-active {
+  background: linear-gradient(135deg, var(--pink-deep), var(--pink));
+  color: #2a0e1a;
+  font-weight: 800;
+  box-shadow: 0 8px 22px -8px var(--pink-deep), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.main-nav a:hover { color: var(--text); }
+.main-nav a.is-active:hover { color: #2a0e1a; }
+
+/* The sliding pill is ONLY a hover indicator — invisible by default. */
 .main-nav .nav-pill {
   position: absolute;
   left: 0; top: 50%;
@@ -1619,23 +1637,19 @@ body[data-page="kak-zajti"]  .page-banner-bg img { filter: saturate(1.1) brightn
   opacity: 0;
   will-change: transform, width;
 }
-.main-nav.has-pill .nav-pill { opacity: 1; }
-.main-nav a {
-  position: relative;
-  z-index: 1;
-}
-.main-nav a.is-active {
-  color: #2a0e1a;
-  font-weight: 800;
-  background: transparent;
-}
-.main-nav a.is-active:hover { background: transparent; color: #2a0e1a; }
-.main-nav a:hover {
+
+/* When hovering anywhere in nav: hide active's static bg, show the pill,
+   and let it ride to whichever link the cursor is over. */
+.main-nav.is-hovering a.is-active {
   background: transparent;
   color: var(--text);
+  font-weight: 600;
+  box-shadow: none;
 }
-.main-nav.has-pill a.pill-hover {
+.main-nav.is-hovering .nav-pill { opacity: 1; }
+.main-nav.is-hovering a.pill-hover {
   color: #2a0e1a;
+  font-weight: 800;
 }
 
 /* ===========================================================

@@ -156,12 +156,13 @@ function setupReveal() {
   items.forEach((el) => io.observe(el));
 }
 
-/* ---------- nav pill (header sliding indicator) ---------- */
+/* ---------- nav pill (hover-only sliding indicator) ---------- */
 function setupNavPill() {
   const nav = document.querySelector('.main-nav');
   if (!nav) return;
   const links = nav.querySelectorAll('a');
   if (!links.length) return;
+  if (matchMedia('(hover: none)').matches) return; // pointer-coarse: skip
   let pill = nav.querySelector('.nav-pill');
   if (!pill) {
     pill = document.createElement('span');
@@ -176,18 +177,19 @@ function setupNavPill() {
     nav.style.setProperty('--pill-w', `${r.width.toFixed(2)}px`);
   };
   const active = nav.querySelector('a.is-active') || links[0];
-  requestAnimationFrame(() => {
-    moveTo(active);
-    nav.classList.add('has-pill');
-  });
+  // park the pill under the active link silently (still hidden by CSS opacity:0)
+  requestAnimationFrame(() => moveTo(active));
+
   links.forEach((a) => {
     a.addEventListener('mouseenter', () => {
+      nav.classList.add('is-hovering');
       links.forEach((x) => x.classList.remove('pill-hover'));
       a.classList.add('pill-hover');
       moveTo(a);
     });
   });
   nav.addEventListener('mouseleave', () => {
+    nav.classList.remove('is-hovering');
     links.forEach((x) => x.classList.remove('pill-hover'));
     moveTo(active);
   });
