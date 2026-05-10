@@ -1600,11 +1600,88 @@ body[data-page="kak-zajti"]  .page-banner-bg img { filter: saturate(1.1) brightn
 .inline-copy:hover { background: rgba(244, 176, 198, 0.20); border-color: var(--pink); }
 .inline-copy code { color: var(--pink); font-size: 16px; padding: 0; background: none; }
 
-/* active nav link */
-.main-nav a.is-active {
+/* ===========================================================
+   NAV-PILL — pink "drop" slides between nav buttons
+   =========================================================== */
+.main-nav { position: relative; z-index: 1; }
+.main-nav .nav-pill {
+  position: absolute;
+  left: 0; top: 50%;
+  height: 36px;
+  transform: translate3d(var(--pill-x, 0), -50%, 0);
+  width: var(--pill-w, 0);
   background: linear-gradient(135deg, var(--pink-deep), var(--pink));
+  border-radius: var(--radius-pill);
+  box-shadow: 0 8px 22px -8px var(--pink-deep), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  z-index: -1;
+  transition: transform 420ms cubic-bezier(.45, 1.45, .5, 1), width 420ms cubic-bezier(.45, 1.45, .5, 1), opacity 220ms var(--ease);
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, width;
+}
+.main-nav.has-pill .nav-pill { opacity: 1; }
+.main-nav a {
+  position: relative;
+  z-index: 1;
+}
+.main-nav a.is-active {
   color: #2a0e1a;
   font-weight: 800;
+  background: transparent;
+}
+.main-nav a.is-active:hover { background: transparent; color: #2a0e1a; }
+.main-nav a:hover {
+  background: transparent;
+  color: var(--text);
+}
+.main-nav.has-pill a.pill-hover {
+  color: #2a0e1a;
+}
+
+/* ===========================================================
+   CROSS-PAGE TRANSITIONS (View Transitions API + fallback)
+   =========================================================== */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) {
+  animation: page-leave 340ms cubic-bezier(.4, 0, .2, 1) both;
+}
+::view-transition-new(root) {
+  animation: page-enter 460ms cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes page-leave {
+  from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  to   { opacity: 0; transform: translateY(-10px) scale(0.99); filter: blur(6px); }
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(14px) scale(0.99); filter: blur(8px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* header persists across navigation (no animation on it) */
+.site-header { view-transition-name: site-header; }
+.site-footer { view-transition-name: site-footer; }
+::view-transition-old(site-header),
+::view-transition-new(site-header),
+::view-transition-old(site-footer),
+::view-transition-new(site-footer) {
+  animation: none !important;
+}
+
+/* JS fallback for browsers without View Transitions */
+body.page-leaving {
+  opacity: 0;
+  transform: translateY(-8px);
+  filter: blur(6px);
+  transition: opacity 280ms ease, transform 280ms ease, filter 280ms ease;
+}
+body.page-loaded main,
+body.page-loaded .strip-section {
+  animation: page-enter-fallback 540ms cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes page-enter-fallback {
+  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
 }
 
 /* === IP source of truth: HEADER only (everywhere). Footer never shows IP. === */

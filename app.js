@@ -156,6 +156,70 @@ function setupReveal() {
   items.forEach((el) => io.observe(el));
 }
 
+/* ---------- nav pill (header sliding indicator) ---------- */
+function setupNavPill() {
+  const nav = document.querySelector('.main-nav');
+  if (!nav) return;
+  const links = nav.querySelectorAll('a');
+  if (!links.length) return;
+  let pill = nav.querySelector('.nav-pill');
+  if (!pill) {
+    pill = document.createElement('span');
+    pill.className = 'nav-pill';
+    nav.prepend(pill);
+  }
+  const moveTo = (el) => {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const nr = nav.getBoundingClientRect();
+    nav.style.setProperty('--pill-x', `${(r.left - nr.left).toFixed(2)}px`);
+    nav.style.setProperty('--pill-w', `${r.width.toFixed(2)}px`);
+  };
+  const active = nav.querySelector('a.is-active') || links[0];
+  requestAnimationFrame(() => {
+    moveTo(active);
+    nav.classList.add('has-pill');
+  });
+  links.forEach((a) => {
+    a.addEventListener('mouseenter', () => {
+      links.forEach((x) => x.classList.remove('pill-hover'));
+      a.classList.add('pill-hover');
+      moveTo(a);
+    });
+  });
+  nav.addEventListener('mouseleave', () => {
+    links.forEach((x) => x.classList.remove('pill-hover'));
+    moveTo(active);
+  });
+  window.addEventListener('resize', () => moveTo(nav.querySelector('.pill-hover') || active), { passive: true });
+}
+
+/* ---------- page transitions (fallback for browsers w/o View Transitions API) ---------- */
+function setupPageTransitions() {
+  document.body.classList.add('page-loaded');
+  if ('startViewTransition' in document) return; // native CSS-driven transitions handle it
+  const internal = (href) => {
+    if (!href) return false;
+    if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return false;
+    try {
+      const u = new URL(href, location.href);
+      if (u.origin !== location.origin) return false;
+      return /\.html?($|\?|#)/i.test(u.pathname) || u.pathname === '/' || u.pathname.endsWith('/');
+    } catch { return false; }
+  };
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a');
+    if (!a) return;
+    if (a.target === '_blank' || a.hasAttribute('download')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    const href = a.getAttribute('href');
+    if (!internal(href)) return;
+    e.preventDefault();
+    document.body.classList.add('page-leaving');
+    setTimeout(() => { window.location.href = href; }, 280);
+  });
+}
+
 /* ---------- mobile menu ---------- */
 function setupMobileMenu() {
   const btn = document.querySelector('[data-menu-toggle]');
@@ -268,4 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupMobileMenu();
   setupScrollHeader();
   setupLightbox();
+  setupNavPill();
+  setupPageTransitions();
 });
