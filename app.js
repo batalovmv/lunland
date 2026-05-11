@@ -163,10 +163,25 @@ function setupMobileMenu() {
   const nav = document.querySelector('[data-nav]');
   if (!btn || !nav || btn.dataset.menuBound) return;
   btn.dataset.menuBound = '1';
+
+  const closeMenu = () => {
+    nav.classList.remove('is-open');
+    btn.setAttribute('aria-expanded', 'false');
+  };
+
   btn.addEventListener('click', () => {
     const open = nav.classList.toggle('is-open');
     btn.setAttribute('aria-expanded', String(open));
   });
+  nav.addEventListener('click', (event) => {
+    if (event.target.closest('a')) closeMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMenu();
+  });
+  window.addEventListener('resize', () => {
+    if (!matchMedia('(max-width: 980px)').matches) closeMenu();
+  }, { passive: true });
 }
 
 /* ---------- nav pill ---------- */
@@ -268,7 +283,7 @@ function closeLightbox() {
    =================================================================== */
 function initPage() {
   const hero = document.querySelector('.hero');
-  if (hero) spawnSparkles(hero, 10);
+  if (hero) spawnSparkles(hero, matchMedia('(max-width: 640px)').matches ? 5 : 10);
   document.querySelectorAll('.magnetic').forEach(bindMagnetic);
   document.querySelectorAll('.tier-card, .feature-card').forEach(bindTilt);
   setupReveal();
@@ -420,7 +435,7 @@ function setupGlobalDelegation() {
    BOOT
    =================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
-  spawnPetals(document.getElementById('petals'), 26);
+  spawnPetals(document.getElementById('petals'), matchMedia('(max-width: 640px)').matches ? 12 : 26);
   setupGlobalDelegation();
   setupMobileMenu();
   setupRouter();
